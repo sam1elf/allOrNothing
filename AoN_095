@@ -1,0 +1,355 @@
+# All or Nothing
+# a dice roll game
+# by Sam 09.06.2017
+# version_095
+
+# cleanup: daniel's recommendations
+# implement saving scores to txt file
+# added saveToFile() and saveAndQuit()
+
+# still
+#           ToDo: write program that reads each line of the text file and ...
+#           ToDo: Ask for name(s) and number of Players at the Start
+#           ToDo: Save final Scores to a File(done) and read it on player change
+#           ToDo: ask if the game will be played by a player or an "AI"
+#           ToDo: implement said "AI"
+#           ToDo: add (local) multilayer support
+#           ToDo: try to work testRoll and evaluateRoll into the same function (maybe)
+#
+import random
+
+points = 0
+rollCounter = 0
+dice = {}
+diceRemaining = 6
+debug = False
+
+def rollRemainingDice():
+    """ sets a face value for each remaining die """
+    global dice
+    global diceRemaining
+    global debug
+
+    # allows for manual selection of the faces on the first roll
+    if debug:
+        dice[1] = 2
+        dice[2] = 2
+        dice[3] = 2
+        dice[4] = 4
+        dice[5] = 4
+        dice[6] = 3
+        debug = False
+
+    else:
+        # if all dice have been used up - reset to 6
+        if diceRemaining == 0 and oldPoints < points:
+            diceRemaining = 6
+
+        # clear the face values
+        dice = {}
+
+        # give each remaining dice a new face value
+        for i in range(0, diceRemaining):
+            dice.__setitem__(i + 1, random.randrange(1, 6))
+
+    return dice
+
+def printOutDice():
+    """ displays the dice in the command prompt """
+    print("\n")
+    def printOut(args):
+        for i in range(0, len(dice)):
+            print(args[dice[i + 1]], " ", end='')
+        print()
+
+    # display the dice
+    firstLine = [0, 1, 2, 3, 4, 5, 6]
+    secndLine = [0, 1, 2, 3, 4, 5, 6]
+    thirdLine = [0, 1, 2, 3, 4, 5, 6]
+
+    dieLine = " -------  "
+
+    firstLine[1] = " |     |"
+    secndLine[1] = " |  *  |"
+    thirdLine[1] = " |     |"
+
+    firstLine[2] = " |*    |"
+    secndLine[2] = " |     |"
+    thirdLine[2] = " |    *|"
+
+    firstLine[3] = " |*    |"
+    secndLine[3] = " |  *  |"
+    thirdLine[3] = " |    *|"
+
+    firstLine[4] = " |*   *|"
+    secndLine[4] = " |     |"
+    thirdLine[4] = " |*   *|"
+
+    firstLine[5] = " |*   *|"
+    secndLine[5] = " |  *  |"
+    thirdLine[5] = " |*   *|"
+
+    firstLine[6] = " |*   *|"
+    secndLine[6] = " |*   *|"
+    thirdLine[6] = " |*   *|"
+
+    print(dieLine * len(dice))
+    printOut(firstLine)
+    printOut(secndLine)
+    printOut(thirdLine)
+    print(dieLine * len(dice))
+
+    for i in range(0, len(dice)):
+        print("  |", i + 1, "|   ", end="")
+    print()
+
+def TestRoll():
+    """ checks if the roll can score any points.
+        returns 0 if no,
+        returns 1 if yes,
+        returns 50 or 100 if the last die scores the respective amount. """
+
+    pairs = 0
+    keepThese = []
+
+    # take the values from the dictionary and add them to the keepThese list
+    for i in range(0, len(dice)):
+        keepThese.append(dice[i + 1])
+
+    # check how many of each number were rolled and kept
+    ones = keepThese.count(1)
+    twos = keepThese.count(2)
+    threes = keepThese.count(3)
+    fours = keepThese.count(4)
+    fives = keepThese.count(5)
+    sixes = keepThese.count(6)
+
+    # edgecase: one die remains and it can score points -> will always be kept
+    if diceRemaining == 1 and ones == 1:
+        return 100
+    if diceRemaining == 1 and fives == 1:
+        return 50
+
+    # pairs
+    if ones == 2:
+        pairs += 1
+    if twos == 2:
+        pairs += 1
+    if threes == 2:
+        pairs += 1
+    if fours == 2:
+        pairs += 1
+    if fives == 2:
+        pairs += 1
+    if sixes == 2:
+        pairs += 1
+    if pairs == 3:
+        return 1
+
+    # street
+    if ones == 1 and twos == 1 and threes == 1 and fours == 1 and fives == 1 and sixes == 1:
+        return 1
+
+    # ones
+    if ones >= 1:
+        return 1
+
+    # fives
+    if fives >= 1:
+        return 1
+
+    # 3+ of a kind
+    # check faces 2 3 4 5 6 for 3/4/5/6 of a kinds
+    for i in range(2, 7):
+
+        # don't use face value 5, because it's handled elsewhere
+        if i == 5:
+           continue
+
+        # subtract 3 from any count,
+        # because at least 3 (6 - 3) of the same are required to get points.
+        diff = keepThese.count(i) - 3
+
+        # jump out, if there are at least 3 of i
+        if diff >= 0:
+            return 1
+
+    # no point-gaines were possible
+    return 0
+
+def evaluateRoll():
+    """ checks the selected dice for respective points and returns them """
+
+    pairs = 0
+    pointsGained = 0
+
+    # check how many of each number were rolled and kept
+    ones = keepThese.count(1)
+    twos = keepThese.count(2)
+    threes = keepThese.count(3)
+    fours = keepThese.count(4)
+    fives = keepThese.count(5)
+    sixes = keepThese.count(6)
+
+    # three pairs
+    if ones == 2:
+        pairs += 1
+    if twos == 2:
+        pairs += 1
+    if threes == 2:
+        pairs += 1
+    if fours == 2:
+        pairs += 1
+    if fives == 2:
+        pairs += 1
+    if sixes == 2:
+        pairs += 1
+    if pairs == 3:
+        pointsGained += 500
+        # return here because ones and fives should not add to points after this
+        return pointsGained
+
+    # street
+    if ones == 1 and twos == 1 and threes == 1 and fours == 1 and fives == 1 and sixes == 1:
+        pointsGained += 1250
+        # same here
+        return pointsGained
+
+    # ones
+    if ones == 1:
+        pointsGained += 100
+    if ones == 2:
+        pointsGained += 200
+    if ones == 3:
+        pointsGained += 1000
+    if ones == 4:
+        pointsGained += 2000
+    if ones == 5:
+        pointsGained += 4000
+    if ones == 6:
+        pointsGained += 8000
+        # and here
+        return pointsGained
+
+    # fives
+    if fives == 1:
+        pointsGained += 50
+    if fives == 2:
+        pointsGained += 100
+
+    # 3+ of a kind
+    # check faces 2 3 4 5 6 for 3/4/5/6 of a kinds
+    for i in range(2, 7):
+
+        # subtract 3 from any count,
+        # because at least 3 (6 - 3) of the same are required to get points.
+        diff = keepThese.count(i) - 3
+
+        # jump out, if there are not at least 3 of i
+        if diff < 0:
+            continue
+
+        # base uses the face value of the current dice and multiplies it by 100
+        # to get the base value for a three of a kind
+        base = i * 100
+
+        # iterate over 0 - 0/1/2 -(0/0 would be a three of a kind and have no range
+        # so it would not enter the for loop)
+        for i in range(int(diff)):
+
+            # if the iterator is smaller or equal to 2 (which would be a six of a kind)
+            if i <= diff:
+
+                # double the current base value
+                base *= 2
+
+        pointsGained += base
+
+    return pointsGained
+
+def saveToFile(arg):
+    """ save the final score and the number of rolls it took to get there to a specified file """
+    file = open("save_095.txt", "a")
+    lineToWrite = [arg, rollCounter]
+    file.write(str(lineToWrite))
+    file.write("\n")
+    file.close()
+
+def saveAndQuit(arg1, arg2):
+    """ print respective quitting reason and run saveToFile() """
+    print(arg1, "\nPoints:", arg2)
+    saveToFile(arg2)
+    print("Quitting...")
+
+
+while True:
+    rollRemainingDice()
+    rollCounter += 1
+    printOutDice()
+
+    # save the returning value of TestRoll() in variable testRollResults
+    testRollResult = TestRoll()
+
+    if testRollResult > 0:
+        if testRollResult == 1:
+
+            # ask which dice to keep and put the input in a list
+            keepTheseDice = input("\nWhich would you like to keep: ").split()
+
+            # clear the keepThese list
+            keepThese = []
+
+            # and populate it with the faces of the dice to keep
+            for i in range(0, len(keepTheseDice)):
+                keepThese.append(dice[int(keepTheseDice[i])])
+
+            # subtract the used dice from pool
+            diceRemaining -= len(keepTheseDice)
+
+            # store current points in oldPoints
+            oldPoints = points
+
+            # get new points score by running evaluateRoll() function
+            points += evaluateRoll()
+
+        # edgecase one 1 or one 5 / testRollResult 50 or 100
+        if testRollResult > 1:
+            points += testRollResult
+            diceRemaining -= 1
+            print("Your last Die scored {} points".format(testRollResult))
+
+        # if you gained any points
+        if oldPoints < points:
+            print("Current Points: ", points)
+            print("Dice remaining: ", diceRemaining)
+
+
+            # win condition reached
+            if points >= 10000:
+                saveAndQuit("\n10000 points reached! You Win!", points)
+                break
+
+            # more than 350 points needed in order to be able to stop
+            elif points < 350:
+                print("\nScore is less than 350, you have to roll again!")
+                continue
+
+            # ask whether or not to stop
+            else:
+                if diceRemaining == 0:
+                    rollAgain = input("All dice used up! Press Enter to roll all Six dice again, or n/no to stop")
+                else:
+                    rollAgain = input("Press Enter to roll again, or type n/no to stop ")
+                if rollAgain.lower().startswith("n"):
+                    saveAndQuit("\nYou chose to bank", points)
+                    break
+                else:
+                    continue
+
+        else:
+            saveAndQuit("\nNo valid dice selected...", 0)
+            break
+
+    else:
+        saveAndQuit("\nNo change in points possible", 0)
+        break
